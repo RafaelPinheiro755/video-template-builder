@@ -402,7 +402,7 @@ def render_legenda_png(legenda, fontsize_hint, max_width, font_bold_path, output
             f = font_big if is_bold else font
             color = color_bold if is_bold else color_normal
             # Alinha pela parte de baixo: desloca normal pra baixo
-            y_offset = (baseline_big - baseline_normal) if not is_bold else 1
+            y_offset = (baseline_big - baseline_normal) if not is_bold else 2
             draw.text((x, y_line + y_offset), word, font=f, fill=color)
             x += f.getlength(word) + space_w
 

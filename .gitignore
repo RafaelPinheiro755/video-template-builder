@@ -1,0 +1,15 @@
+.env
+output/
+temp/
+static/uploads/
+assets/
+test_videos/
+__pycache__/
+*.pyc
+*.mp4
+*.mov
+*.avi
+*.png
+*.jpg
+*.jpeg
+!requirements.txt

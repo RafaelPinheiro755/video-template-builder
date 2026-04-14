@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+output/
+temp/
+static/uploads/
+*.mp4
+*.mov
+*.avi
+test_videos/
+elon_musk_*/
+.git/
+.claude/
+assets/

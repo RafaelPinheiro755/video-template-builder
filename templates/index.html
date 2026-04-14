@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Expediente.ai - Video Template Builder</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #0a0a0a;
+    color: #f1f1f1;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 520px;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+
+  .header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+
+  .header h1 span { color: #3b9eff; }
+
+  .header p {
+    color: #666;
+    font-size: 14px;
+    margin-top: 6px;
+  }
+
+  .card {
+    background: #141414;
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    padding: 32px;
+  }
+
+  .field {
+    margin-bottom: 18px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #999;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .field input, .field textarea {
+    width: 100%;
+    background: #1c1c1c;
+    border: 1px solid #333;
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: #f1f1f1;
+    font-size: 15px;
+    font-family: inherit;
+    transition: border-color 0.2s;
+  }
+
+  .field input:focus, .field textarea:focus {
+    outline: none;
+    border-color: #3b9eff;
+  }
+
+  .field textarea {
+    resize: vertical;
+    min-height: 60px;
+  }
+
+  .field input::placeholder, .field textarea::placeholder {
+    color: #555;
+  }
+
+  .row {
+    display: flex;
+    gap: 12px;
+  }
+
+  .row .field { flex: 1; }
+
+  .upload-area {
+    border: 2px dashed #333;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
+  }
+
+  .upload-area:hover {
+    border-color: #3b9eff;
+    background: #1a1a2e;
+  }
+
+  .upload-area.has-file {
+    border-color: #3b9eff;
+    background: #1a1a2e;
+  }
+
+  .upload-area input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .upload-area .icon {
+    font-size: 24px;
+    margin-bottom: 6px;
+  }
+
+  .upload-area .text {
+    color: #888;
+    font-size: 13px;
+  }
+
+  .upload-area .filename {
+    color: #3b9eff;
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 4px;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 8px;
+  }
+
+  .btn-primary {
+    background: #3b9eff;
+    color: #fff;
+  }
+
+  .btn-primary:hover { background: #2b8ae6; }
+  .btn-primary:disabled { background: #333; color: #666; cursor: not-allowed; }
+
+  .btn-secondary {
+    background: #1c1c1c;
+    color: #999;
+    border: 1px solid #333;
+    margin-top: 12px;
+  }
+
+  .btn-secondary:hover { background: #222; color: #f1f1f1; }
+
+  /* Progress */
+  .progress-section {
+    display: none;
+    text-align: center;
+    padding: 40px 0;
+  }
+
+  .progress-section.active { display: block; }
+
+  .progress-bar-bg {
+    width: 100%;
+    height: 6px;
+    background: #2a2a2a;
+    border-radius: 3px;
+    overflow: hidden;
+    margin: 24px 0 16px;
+  }
+
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #3b9eff, #7c3aed);
+    border-radius: 3px;
+    width: 0%;
+    transition: width 0.5s ease;
+  }
+
+  .progress-stage {
+    color: #888;
+    font-size: 14px;
+  }
+
+  .progress-percent {
+    font-size: 48px;
+    font-weight: 700;
+    color: #3b9eff;
+    margin-top: 12px;
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 3px solid #2a2a2a;
+    border-top-color: #3b9eff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 16px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Done */
+  .done-section {
+    display: none;
+    text-align: center;
+  }
+
+  .done-section.active { display: block; }
+
+  .done-section video {
+    width: 100%;
+    max-height: 480px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    background: #000;
+  }
+
+  .done-info {
+    color: #888;
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+
+  .done-check {
+    font-size: 48px;
+    margin-bottom: 8px;
+  }
+
+  /* Error */
+  .error-section {
+    display: none;
+    text-align: center;
+    padding: 40px 0;
+  }
+
+  .error-section.active { display: block; }
+
+  .error-msg {
+    background: #1c1111;
+    border: 1px solid #4a2020;
+    border-radius: 10px;
+    padding: 16px;
+    color: #ff6b6b;
+    font-size: 13px;
+    text-align: left;
+    margin: 16px 0;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  .form-section { display: block; }
+  .form-section.hidden { display: none; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>Expediente<span>.ai</span></h1>
+    <p>Video Template Builder</p>
+  </div>
+
+  <div class="card">
+
+    <!-- FORM -->
+    <div id="formSection" class="form-section">
+      <div class="field">
+        <label>URL do Video</label>
+        <input type="text" id="url" placeholder="https://instagram.com/reel/..." />
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>Nome do Perfil</label>
+          <input type="text" id="perfil" value="Expediente.ai" />
+        </div>
+        <div class="field">
+          <label>Arroba</label>
+          <input type="text" id="arroba" value="@expediente.ai" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Legenda</label>
+        <textarea id="legenda" placeholder="Texto da legenda do post..."></textarea>
+      </div>
+
+      <div class="field">
+        <label>Titulo</label>
+        <input type="text" id="titulo" placeholder="Titulo em destaque" />
+      </div>
+
+      <div class="field">
+        <label>Logo / Foto de Perfil (opcional)</label>
+        <div class="upload-area" id="uploadArea">
+          <input type="file" id="logo" accept="image/*" />
+          <div class="icon">+</div>
+          <div class="text">Clique ou arraste a imagem</div>
+          <div class="filename" id="logoFilename"></div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="btnGenerate" onclick="startGeneration()">
+        Gerar Video
+      </button>
+    </div>
+
+    <!-- PROGRESS -->
+    <div id="progressSection" class="progress-section">
+      <div class="spinner"></div>
+      <div class="progress-percent" id="progressPercent">0%</div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+      <div class="progress-stage" id="progressStage">Iniciando...</div>
+    </div>
+
+    <!-- DONE -->
+    <div id="doneSection" class="done-section">
+      <div class="done-check">&#10003;</div>
+      <video id="previewVideo" controls autoplay muted loop></video>
+      <div class="done-info" id="doneInfo"></div>
+      <button class="btn btn-primary" id="btnDownload" onclick="downloadVideo()">
+        Baixar Video
+      </button>
+      <button class="btn btn-secondary" onclick="resetForm()">
+        Criar Outro
+      </button>
+    </div>
+
+    <!-- ERROR -->
+    <div id="errorSection" class="error-section">
+      <div style="font-size: 48px;">&#10007;</div>
+      <div style="font-size: 18px; font-weight: 700; margin-top: 8px;">Erro</div>
+      <div class="error-msg" id="errorMsg"></div>
+      <button class="btn btn-secondary" onclick="resetForm()">
+        Tentar Novamente
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+let currentTaskId = null;
+
+// Logo upload feedback
+document.getElementById('logo').addEventListener('change', function() {
+  const fn = this.files[0]?.name;
+  const area = document.getElementById('uploadArea');
+  const label = document.getElementById('logoFilename');
+  if (fn) {
+    label.textContent = fn;
+    area.classList.add('has-file');
+  } else {
+    label.textContent = '';
+    area.classList.remove('has-file');
+  }
+});
+
+function showSection(name) {
+  ['formSection', 'progressSection', 'doneSection', 'errorSection'].forEach(id => {
+    const el = document.getElementById(id);
+    if (id === name + 'Section') {
+      el.classList.add('active');
+      el.classList.remove('hidden');
+    } else {
+      el.classList.remove('active');
+      if (id === 'formSection') el.classList.add('hidden');
+    }
+  });
+  // form is special
+  if (name === 'form') {
+    document.getElementById('formSection').classList.remove('hidden');
+  }
+}
+
+async function startGeneration() {
+  const url = document.getElementById('url').value.trim();
+  const perfil = document.getElementById('perfil').value.trim();
+  const arroba = document.getElementById('arroba').value.trim();
+  const legenda = document.getElementById('legenda').value.trim();
+  const titulo = document.getElementById('titulo').value.trim();
+
+  if (!url || !perfil || !arroba || !legenda || !titulo) {
+    alert('Preencha todos os campos obrigatorios.');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('url', url);
+  formData.append('perfil', perfil);
+  formData.append('arroba', arroba);
+  formData.append('legenda', legenda);
+  formData.append('titulo', titulo);
+
+  const logoInput = document.getElementById('logo');
+  if (logoInput.files.length > 0) {
+    formData.append('logo', logoInput.files[0]);
+  }
+
+  document.getElementById('btnGenerate').disabled = true;
+  showSection('progress');
+  updateProgress(0, 'Enviando...');
+
+  try {
+    const resp = await fetch('/api/process', { method: 'POST', body: formData });
+    const data = await resp.json();
+
+    if (data.error) {
+      showError(data.error);
+      return;
+    }
+
+    currentTaskId = data.task_id;
+    pollStatus();
+
+  } catch (e) {
+    showError('Erro de conexao: ' + e.message);
+  }
+}
+
+async function pollStatus() {
+  if (!currentTaskId) return;
+
+  try {
+    const resp = await fetch(`/api/status/${currentTaskId}`);
+    const data = await resp.json();
+
+    if (data.status === 'done') {
+      updateProgress(100, 'Concluido!');
+      setTimeout(() => showDone(data), 500);
+      return;
+    }
+
+    if (data.status === 'error') {
+      showError(data.error || data.stage || 'Erro desconhecido');
+      return;
+    }
+
+    updateProgress(data.progress, data.stage);
+    setTimeout(pollStatus, 2000);
+
+  } catch (e) {
+    setTimeout(pollStatus, 3000);
+  }
+}
+
+function updateProgress(percent, stage) {
+  document.getElementById('progressBar').style.width = percent + '%';
+  document.getElementById('progressPercent').textContent = percent + '%';
+  document.getElementById('progressStage').textContent = stage || '';
+}
+
+function showDone(data) {
+  showSection('done');
+  const video = document.getElementById('previewVideo');
+  video.src = `/api/preview/${currentTaskId}`;
+  document.getElementById('doneInfo').textContent =
+    `${data.output_file} — ${data.size_mb} MB — 1080x1920`;
+}
+
+function showError(msg) {
+  showSection('error');
+  document.getElementById('errorMsg').textContent = msg;
+}
+
+function downloadVideo() {
+  if (currentTaskId) {
+    window.location.href = `/api/download/${currentTaskId}`;
+  }
+}
+
+function resetForm() {
+  currentTaskId = null;
+  showSection('form');
+  document.getElementById('btnGenerate').disabled = false;
+  document.getElementById('progressBar').style.width = '0%';
+}
+</script>
+
+</body>
+</html>

@@ -287,6 +287,30 @@ def crop_video(video_path, crop, output_path, ffmpeg_path):
     print(f"    Video cortado: {output_path}")
 
 
+def render_verified_badge(output_path, size=28):
+    """Renderiza selo verificado azul do Instagram como PNG transparente."""
+    from PIL import Image, ImageDraw
+
+    img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+
+    # Circulo azul
+    draw.ellipse([0, 0, size - 1, size - 1], fill=(0, 149, 246, 255))
+
+    # Checkmark branco
+    cx, cy = size / 2, size / 2
+    r = size * 0.30
+    points = [
+        (cx - r * 0.55, cy + r * 0.05),
+        (cx - r * 0.10, cy + r * 0.55),
+        (cx + r * 0.65, cy - r * 0.45),
+    ]
+    draw.line(points, fill=(255, 255, 255, 255), width=max(2, size // 10))
+
+    img.save(str(output_path))
+    return size
+
+
 def escape_ffmpeg_text(text):
     """Escapa caracteres especiais pra drawtext do ffmpeg."""
     text = text.replace("\\", "\\\\")
@@ -645,7 +669,8 @@ def build_template(video_path, output_path, ffmpeg_path, perfil, arroba, legenda
         r = PFP_SIZE // 2
         circle_mask = f"if(lte(pow(X-{r}\\,2)+pow(Y-{r}\\,2)\\,pow({r}\\,2))\\,255\\,0)"
         pfp_filter = (
-            f"[2:v]scale={PFP_SIZE}:{PFP_SIZE},format=yuva444p,"
+            f"[2:v]scale='if(gte(iw/ih\\,1)\\,{PFP_SIZE}\\,{PFP_SIZE}*iw/ih)':'if(gte(iw/ih\\,1)\\,{PFP_SIZE}*ih/iw\\,{PFP_SIZE})',"
+            f"pad={PFP_SIZE}:{PFP_SIZE}:(ow-iw)/2:(oh-ih)/2:black,format=yuva444p,"
             f"geq=lum='p(X\\,Y)':cb='p(X\\,Y)':cr='p(X\\,Y)':a='{circle_mask}'[pfp];"
         )
         bg_init = f"[0:v][vid]overlay=20:{VIDEO_Y}:shortest=1[bg];"
@@ -660,8 +685,25 @@ def build_template(video_path, output_path, ffmpeg_path, perfil, arroba, legenda
         )
         pfp_overlay = ""
 
+    NOME_FONTSIZE = 36
+
+    # Renderiza selo verificado alinhado ao centro das maiusculas
+    from PIL import ImageFont
+    badge_png = TEMP_DIR / "verified_badge.png"
+    badge_size = render_verified_badge(badge_png, size=28)
+    nome_font = ImageFont.truetype(FONTS["bold"], NOME_FONTSIZE)
+    nome_width = int(nome_font.getlength(perfil))
+    ascent, _ = nome_font.getmetrics()
+    cap_center = TEXT_Y_NOME + ascent * 0.38
+    BADGE_X = TEXT_X + nome_width + 8
+    BADGE_Y = int(cap_center - badge_size / 2)
+
+    # Adiciona badge como input (indice = numero de inputs existentes)
+    badge_idx = sum(1 for v in inputs if v == "-i")
+    inputs += ["-i", str(badge_png)]
+
     drawtext = (
-        f"drawtext=fontfile='{font_bold}':text='{perfil_esc}':fontsize=42:fontcolor=white:x={TEXT_X}:y={TEXT_Y_NOME},"
+        f"drawtext=fontfile='{font_bold}':text='{perfil_esc}':fontsize={NOME_FONTSIZE}:fontcolor=white:x={TEXT_X}:y={TEXT_Y_NOME},"
         f"drawtext=fontfile='{font_regular}':text='{arroba_esc}':fontsize=30:fontcolor=0x888888:x={TEXT_X}:y={TEXT_Y_ARROBA}"
     )
 
@@ -671,7 +713,8 @@ def build_template(video_path, output_path, ffmpeg_path, perfil, arroba, legenda
         f"{bg_init}"
         f"{pfp_overlay}"
         f"[bg2][{leg_idx}:v]overlay={PFP_X}:{TEXT_Y_LEGENDA}[base];"
-        f"[base]{drawtext}"
+        f"[base]{drawtext}[named];"
+        f"[named][{badge_idx}:v]overlay={BADGE_X}:{BADGE_Y}"
     )
 
     _run_cmd([ffmpeg_path] + inputs + [
